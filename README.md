@@ -2,8 +2,6 @@
 
 API REST para gerenciamento de usuarios, autenticacao, convites, produtos, kits, permissoes e notificacoes.
 
-Este README foi refeito para refletir o estado atual do projeto.
-
 ## Stack
 
 - Node.js
