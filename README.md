@@ -180,7 +180,6 @@ docker compose up -d
 ## Qualidade e arquitetura
 
 - Guardrails arquiteturais em `scripts/architecture-guardrails.mjs`
-- Documentacao arquitetural e de processo e mantida internamente (fora do repositorio publico)
 
 ## Troubleshooting rapido
 
