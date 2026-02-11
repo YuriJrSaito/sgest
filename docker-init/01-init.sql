@@ -1,0 +1,2 @@
+CREATE DATABASE sgest;
+CREATE DATABASE sgest_test;
