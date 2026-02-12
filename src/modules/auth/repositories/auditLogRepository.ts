@@ -51,7 +51,7 @@ export class AuditLogRepository {
       'SELECT COUNT(*) as count FROM audit_logs WHERE user_id = $1',
       [userId]
     );
-    const total = parseInt(countResult.rows[0].count);
+    const total = parseInt(countResult.rows[0].count, 10);
 
     // Buscar registros paginados
     const result = await database.query<AuditLog>(
@@ -122,7 +122,7 @@ export class AuditLogRepository {
       'SELECT COUNT(*) as count FROM audit_logs WHERE action = $1',
       [action]
     );
-    const total = parseInt(countResult.rows[0].count);
+    const total = parseInt(countResult.rows[0].count, 10);
 
     const result = await database.query<AuditLog>(
       `SELECT * FROM audit_logs
@@ -193,8 +193,8 @@ export class AuditLogRepository {
 
     const row = result.rows[0];
     return {
-      totalLogins: parseInt(row.total_logins || '0'),
-      failedLogins: parseInt(row.failed_logins || '0'),
+      totalLogins: parseInt(row.total_logins || '0', 10),
+      failedLogins: parseInt(row.failed_logins || '0', 10),
       lastLogin: row.last_login,
       lastIpAddress: row.last_ip,
     };

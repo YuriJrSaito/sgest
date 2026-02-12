@@ -367,6 +367,21 @@ describe('Auth Integration Tests', () => {
 
       expect(response.statusCode).toBe(401);
     });
+
+    it('deve retornar 401 para refresh token invalido (contrato opaco)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/auth/refresh',
+        cookies: {
+          refreshToken: 'token-invalido-contrato',
+        },
+      });
+
+      expect(response.statusCode).toBe(401);
+      expect(response.json()).toMatchObject({
+        status: 'error',
+      });
+    });
   });
 
   describe('POST /api/auth/logout', () => {

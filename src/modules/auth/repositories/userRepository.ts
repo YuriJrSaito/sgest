@@ -74,6 +74,22 @@ export class UserRepository {
     return result.rows[0];
   }
 
+  async findByIdWithPassword(id: string): Promise<User> {
+    const query = `
+      SELECT id, name, email, password_hash, role, status, failed_login_attempts, last_failed_login_at, locked_until, created_at, updated_at
+      FROM users
+      WHERE id = $1
+    `;
+
+    const result = await database.query<User>(query, [id]);
+
+    if (!result.rows[0]) {
+      throw new ResourceNotFoundError("Usuario nao encontrado");
+    }
+
+    return result.rows[0];
+  }
+
   async findByIdOrNull(id: string): Promise<User | null> {
     const query = `
       SELECT id, name, email, role, status, failed_login_attempts, last_failed_login_at, locked_until, created_at, updated_at
@@ -103,7 +119,7 @@ export class UserRepository {
     const countQuery = `SELECT COUNT(*) FROM users`;
     const countResult = await database.query<{ count: string }>(countQuery);
 
-    const total = parseInt(countResult.rows[0].count);
+    const total = parseInt(countResult.rows[0].count, 10);
 
     return buildPaginatedResponse(result.rows, total, pagination.page, pagination.limit);
   }

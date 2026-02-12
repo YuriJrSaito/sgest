@@ -11,10 +11,10 @@ CREATE TABLE IF NOT EXISTS invites (
 );
 
 -- Indices para buscas rapidas
-CREATE INDEX idx_invites_token ON invites(token);
-CREATE INDEX idx_invites_email ON invites(email);
-CREATE INDEX idx_invites_expires_at ON invites(expires_at);
-CREATE INDEX idx_invites_used_at ON invites(used_at);
+CREATE INDEX IF NOT EXISTS idx_invites_token ON invites(token);
+CREATE INDEX IF NOT EXISTS idx_invites_email ON invites(email);
+CREATE INDEX IF NOT EXISTS idx_invites_expires_at ON invites(expires_at);
+CREATE INDEX IF NOT EXISTS idx_invites_used_at ON invites(used_at);
 
 -- Comentarios
 COMMENT ON TABLE invites IS 'Sistema de convites para cadastro de novos usuarios';

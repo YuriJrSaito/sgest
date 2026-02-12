@@ -11,9 +11,10 @@ CREATE TABLE IF NOT EXISTS reseller_profiles (
 );
 
 -- Indice para busca por usuario
-CREATE INDEX idx_reseller_profiles_user_id ON reseller_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_reseller_profiles_user_id ON reseller_profiles(user_id);
 
 -- Trigger para atualizar updated_at
+DROP TRIGGER IF EXISTS update_reseller_profiles_updated_at ON reseller_profiles;
 CREATE TRIGGER update_reseller_profiles_updated_at
     BEFORE UPDATE ON reseller_profiles
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

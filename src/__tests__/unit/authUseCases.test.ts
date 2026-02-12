@@ -14,6 +14,16 @@ import tokenService from '../../modules/auth/services/tokenService';
 import { InvalidCredentialsError, InactiveUserError, InvalidCurrentPasswordError } from '../../modules/auth/domain/errors/AuthErrors';
 import { DomainConflictError } from '../../modules/auth/domain/errors/DomainErrors';
 import { UserRole, UserStatus } from '../../types';
+import type { UserRepository } from '../../modules/auth/repositories/userRepository';
+import type { RefreshTokenRepository } from '../../modules/auth/repositories/refreshTokenRepository';
+import type { TokenBlacklistRepository } from '../../modules/auth/repositories/tokenBlacklistRepository';
+import type { PermissionRepository } from '../../modules/permissions/repositories/permissionRepository';
+import type { TokenService } from '../../modules/auth/services/tokenService';
+import type { PasswordService } from '../../modules/auth/services/passwordService';
+import type { BruteForceService } from '../../modules/auth/services/bruteForceService';
+import type { AuditService } from '../../modules/auth/services/auditService';
+import type { ITransactionManager } from '../../modules/auth/services/interfaces/ITransactionManager';
+import type { TransactionContext } from '../../modules/auth/types';
 
 // Mock dos repositories
 jest.mock('../../modules/auth/repositories/userRepository');
@@ -25,7 +35,7 @@ jest.mock('../../modules/auth/repositories/auditLogRepository');
 jest.mock('../../config/database', () => ({
   __esModule: true,
   default: {
-    transaction: jest.fn(async (cb: any) => cb({ query: jest.fn() })),
+    transaction: jest.fn(async (cb: (ctx: { query: jest.Mock }) => Promise<unknown>) => cb({ query: jest.fn() })),
     query: jest.fn(),
   },
 }));
@@ -59,8 +69,8 @@ const bruteForceService = {
 };
 
 const transactionManager = {
-  transaction: jest.fn(async (callback: (ctx: { query: jest.Mock }) => Promise<unknown>) =>
-    callback({ query: jest.fn() })
+  transaction: jest.fn(async (callback: (ctx: TransactionContext) => Promise<unknown>) =>
+    callback({ query: jest.fn() } as unknown as TransactionContext)
   ),
 };
 
@@ -94,13 +104,13 @@ describe('Auth Use Cases', () => {
 
     beforeEach(() => {
       loginUseCase = new LoginUseCase(
-        userRepository as any,
-        refreshTokenRepository as any,
-        tokenService as any,
-        passwordService as any,
-        bruteForceService as any,
-        auditService as any,
-        permissionRepository as any
+        userRepository as unknown as UserRepository,
+        refreshTokenRepository as unknown as RefreshTokenRepository,
+        tokenService as unknown as TokenService,
+        passwordService as unknown as PasswordService,
+        bruteForceService as unknown as BruteForceService,
+        auditService as unknown as AuditService,
+        permissionRepository as unknown as PermissionRepository
       );
       (refreshTokenRepository.create as jest.Mock).mockResolvedValue({
         id: 'refresh-token-id',
@@ -193,11 +203,11 @@ describe('Auth Use Cases', () => {
 
     beforeEach(() => {
       logoutUseCase = new LogoutUseCase(
-        refreshTokenRepository as any,
-        tokenService as any,
-        tokenBlacklistRepository as any,
-        auditService as any,
-        transactionManager as any
+        refreshTokenRepository as unknown as RefreshTokenRepository,
+        tokenService as unknown as TokenService,
+        tokenBlacklistRepository as unknown as TokenBlacklistRepository,
+        auditService as unknown as AuditService,
+        transactionManager as unknown as ITransactionManager
       );
     });
 
@@ -247,11 +257,11 @@ describe('Auth Use Cases', () => {
 
     beforeEach(() => {
       logoutAllUseCase = new LogoutAllUseCase(
-        refreshTokenRepository as any,
-        tokenService as any,
-        tokenBlacklistRepository as any,
-        auditService as any,
-        transactionManager as any
+        refreshTokenRepository as unknown as RefreshTokenRepository,
+        tokenService as unknown as TokenService,
+        tokenBlacklistRepository as unknown as TokenBlacklistRepository,
+        auditService as unknown as AuditService,
+        transactionManager as unknown as ITransactionManager
       );
     });
 
@@ -280,13 +290,13 @@ describe('Auth Use Cases', () => {
 
     beforeEach(() => {
       changePasswordUseCase = new ChangePasswordUseCase(
-        userRepository as any,
-        refreshTokenRepository as any,
-        passwordService as any,
-        tokenService as any,
-        tokenBlacklistRepository as any,
-        auditService as any,
-        transactionManager as any
+        userRepository as unknown as UserRepository,
+        refreshTokenRepository as unknown as RefreshTokenRepository,
+        passwordService as unknown as PasswordService,
+        tokenService as unknown as TokenService,
+        tokenBlacklistRepository as unknown as TokenBlacklistRepository,
+        auditService as unknown as AuditService,
+        transactionManager as unknown as ITransactionManager
       );
     });
 
@@ -298,8 +308,7 @@ describe('Auth Use Cases', () => {
         password_hash: currentPasswordHash,
       };
 
-      (userRepository.findById as jest.Mock).mockResolvedValue(mockUser);
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (userRepository.findByIdWithPassword as jest.Mock).mockResolvedValue(mockUser);
 
       await changePasswordUseCase.execute(
         { userId: '123', currentPassword: 'senhaAtual', newPassword: 'novaSenha123' },
@@ -319,8 +328,7 @@ describe('Auth Use Cases', () => {
         password_hash: currentPasswordHash,
       };
 
-      (userRepository.findById as jest.Mock).mockResolvedValue(mockUser);
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (userRepository.findByIdWithPassword as jest.Mock).mockResolvedValue(mockUser);
 
       await expect(
         changePasswordUseCase.execute(
@@ -336,8 +344,8 @@ describe('Auth Use Cases', () => {
 
     beforeEach(() => {
       getProfileUseCase = new GetProfileUseCase(
-        userRepository as any,
-        permissionRepository as any
+        userRepository as unknown as UserRepository,
+        permissionRepository as unknown as PermissionRepository
       );
     });
 
@@ -368,8 +376,8 @@ describe('Auth Use Cases', () => {
 
     beforeEach(() => {
       updateProfileUseCase = new UpdateProfileUseCase(
-        userRepository as any,
-        permissionRepository as any
+        userRepository as unknown as UserRepository,
+        permissionRepository as unknown as PermissionRepository
       );
     });
 
@@ -409,7 +417,9 @@ describe('Auth Use Cases', () => {
     let getSessionsUseCase: GetSessionsUseCase;
 
     beforeEach(() => {
-      getSessionsUseCase = new GetSessionsUseCase(refreshTokenRepository as any);
+      getSessionsUseCase = new GetSessionsUseCase(
+        refreshTokenRepository as unknown as RefreshTokenRepository
+      );
     });
 
     it('deve listar sessoes ativas', async () => {
@@ -466,9 +476,9 @@ describe('Auth Use Cases', () => {
 
     beforeEach(() => {
       revokeSessionUseCase = new RevokeSessionUseCase(
-        refreshTokenRepository as any,
-        auditService as any,
-        transactionManager as any
+        refreshTokenRepository as unknown as RefreshTokenRepository,
+        auditService as unknown as AuditService,
+        transactionManager as unknown as ITransactionManager
       );
     });
 

@@ -28,18 +28,17 @@ export class ChangePasswordUseCase {
   ) {}
 
   async execute(input: ChangePasswordInput, context: ChangePasswordContext): Promise<void> {
-    // 1. Buscar usuario
-    const user = await this.userRepository.findById(input.userId);
-    const userWithPassword = await this.userRepository.findByEmail(user.email);
+    // 1. Buscar usuario (incluindo hash de senha) em uma unica consulta
+    const user = await this.userRepository.findByIdWithPassword(input.userId);
 
-    if (!userWithPassword || !userWithPassword.password_hash) {
+    if (!user.password_hash) {
       throw new ResourceNotFoundError("Usuario nao encontrado");
     }
 
     // 2. Verificar senha atual
     const isPasswordValid = await this.passwordService.compare(
       input.currentPassword,
-      userWithPassword.password_hash
+      user.password_hash
     );
 
     if (!isPasswordValid) {
